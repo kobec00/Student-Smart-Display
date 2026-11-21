@@ -1,0 +1,22 @@
+{
+  "name": "Lumen",
+  "short_name": "Lumen",
+  "description": "A student smart display: agenda, deadlines, exams and tasks on one quiet screen.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#050607",
+  "theme_color": "#050607",
+  "lang": "nl",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "shortcuts": [
+    { "name": "Taken", "url": "/#/taken" },
+    { "name": "Agenda", "url": "/#/agenda" },
+    { "name": "School", "url": "/#/school" }
+  ]
+}

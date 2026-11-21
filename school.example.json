@@ -1,0 +1,29 @@
+{
+  "title": "Bachelor Bedrijfskunde",
+  "period": "Semester 1",
+  "checked": "2026-01-05",
+  "demo": true,
+  "anchor": "2026-01-05",
+  "courses": [
+    { "id": "stat", "abbr": "STAT", "name": "Statistiek", "tone": 1 },
+    { "id": "eco", "abbr": "ECO", "name": "Micro-economie", "tone": 3 },
+    { "id": "mkt", "abbr": "MKT", "name": "Marketing", "tone": 4 },
+    { "id": "rec", "abbr": "REC", "name": "Inleiding tot het recht", "tone": 5 }
+  ],
+  "items": [
+    { "start": "2026-01-05T08:30", "end": "10:30", "course": "stat", "kind": "les", "title": "Statistiek", "room": "Aula A" },
+    { "start": "2026-01-06T10:00", "end": "12:00", "course": "rec", "kind": "les", "title": "Inleiding tot het recht", "room": "Aula C" },
+    { "start": "2026-01-07T09:00", "end": "12:00", "course": "eco", "kind": "les", "title": "Werkcollege micro-economie", "room": "Lokaal 1.10", "text": "Breng je oplossingen van reeks 4 mee." },
+    { "start": "2026-01-07T23:59", "course": "mkt", "kind": "deadline", "title": "Marketingplan, eerste versie", "text": "Indienen als pdf via het leerplatform, één bestand per groep.", "note": "Feedbackmoment volgt de week erna." },
+    { "start": "2026-01-08T08:30", "end": "10:30", "course": "stat", "kind": "les", "title": "Statistiek", "room": "Aula A" },
+    { "start": "2026-01-09T12:00", "course": "stat", "kind": "opdracht", "title": "Oefenreeks 3: hypothesetoetsen", "text": "Niet verplicht, wel aangeraden voor het examen." },
+    { "start": "2026-01-12T14:00", "end": "17:00", "course": "mkt", "kind": "les", "title": "Marketing: workshop personas", "room": "Lokaal 2.04" },
+    { "start": "2026-01-14T23:59", "course": "rec", "kind": "deadline", "title": "Paper: casus consumentenrecht", "text": "Max. 2500 woorden, APA-bronvermelding." },
+    { "start": "2026-01-19T09:00", "end": "12:00", "course": "stat", "kind": "examen", "title": "Examen Statistiek", "room": "Examenzaal 1", "text": "Schriftelijk, rekenmachine toegelaten (geen grafische)." },
+    { "start": "2026-01-23T13:30", "end": "16:30", "course": "eco", "kind": "examen", "title": "Examen Micro-economie", "room": "Examenzaal 2" },
+    { "start": "2026-01-27T09:00", "noTime": true, "course": "mkt", "kind": "examen", "title": "Mondeling examen Marketing", "text": "Je tijdslot volgt via het leerplatform." }
+  ],
+  "undated": [
+    { "course": "rec", "kind": "opdracht", "title": "Groepsindeling paper", "points": ["Groepen van 3, zelf samen te stellen.", "Datum volgt nog."] }
+  ]
+}

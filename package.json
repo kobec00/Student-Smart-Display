@@ -1,0 +1,24 @@
+{
+  "name": "lumen-student-display",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lumen: a quiet, wall-mounted smart display for students. Agenda, deadlines, exams, lessons and tasks on a Raspberry Pi touchscreen.",
+  "license": "MIT",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "fonts": "node scripts/copy-fonts.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "ical.js": "^2.1.0"
+  },
+  "devDependencies": {
+    "@fontsource-variable/inter-tight": "^5.2.5",
+    "@fontsource-variable/jetbrains-mono": "^5.2.5"
+  }
+}

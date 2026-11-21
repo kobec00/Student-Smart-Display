@@ -1,0 +1,43 @@
+{
+  "port": 8090,
+  "title": "Lumen",
+  "location": { "name": "Brussel", "latitude": 50.85, "longitude": 4.35 },
+
+  "calendars": [
+    { "name": "Persoonlijk", "category": "persoonlijk", "url": "" },
+    { "name": "School", "category": "school", "url": "" },
+    { "name": "Studentenjob", "category": "werk", "url": "" }
+  ],
+
+  "categories": [
+    { "id": "school", "label": "School" },
+    { "id": "persoonlijk", "label": "Persoonlijk" },
+    { "id": "werk", "label": "Werk" },
+    { "id": "kot", "label": "Kot" }
+  ],
+
+  "school": {
+    "timeedit": "",
+    "category": "school",
+    "inAgenda": true
+  },
+
+  "waste": {
+    "postcode": "",
+    "street": "",
+    "houseNumber": "",
+    "category": "kot",
+    "putOut": "evening",
+    "showDaysBefore": 1
+  },
+
+  "display": {
+    "nightStart": "23:00",
+    "nightEnd": "07:00",
+    "morningStart": "06:00",
+    "morningEnd": "11:00",
+    "idleReturnSeconds": 90,
+    "theme": "auto",
+    "name": ""
+  }
+}

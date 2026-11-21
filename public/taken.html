@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Taken</title>
+  <meta name="description" content="Je taken op je gsm, live gekoppeld met je Lumen-display.">
+  <meta name="theme-color" content="#eceef0" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#050607" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Taken">
+  <link rel="manifest" href="taken.webmanifest">
+  <link rel="icon" href="icons/taken.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/taken-180.png">
+  <link rel="preload" href="fonts/inter-tight-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script>document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";</script>
+  <link rel="stylesheet" href="css/taken.css">
+  <script type="module" src="js/taken.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-pot" viewBox="0 0 24 24"><path d="M4.5 10.5h15v5.5a4 4 0 0 1-4 4h-7a4 4 0 0 1-4-4z"/><path d="M2 12h2.5M19.5 12H22M6.5 7.5h11M12 5.5v2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5.5M6 11.5l6-6 6 6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9.5 6 6 6-6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.2v.01"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+    <symbol id="i-move" viewBox="0 0 24 24"><path d="M7 7.5 3.5 11 7 14.5M17 9.5l3.5 3.5-3.5 3.5M3.5 11H14M20.5 13H10"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M12 20.5v-8"/><path d="M12 12.5c0-4.2-3-6.5-7.5-6.5 0 4.2 3 6.5 7.5 6.5zM12 12.5c0-3.4 2.6-5.6 7-5.6 0 3.8-2.6 5.6-7 5.6z"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 3.5c3.5 4.2 6 7.6 6 10.6a6 6 0 0 1-12 0c0-3 2.5-6.4 6-10.6z"/></symbol>
+    <symbol id="i-lamp" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 20.5v-7.5"/><path d="M12 13c0-3.8-2.7-5.9-6.8-5.9 0 3.8 2.7 5.9 6.8 5.9zM12 11.2c0-3.1 2.3-5 5.9-5 0 3.3-2.3 5-5.9 5z"/><path d="M8 20.5h8"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6.5 3.5h11M6.5 20.5h11M7.8 3.5c0 4.6 4.2 5.3 4.2 8.5s-4.2 3.9-4.2 8.5M16.2 3.5c0 4.6-4.2 5.3-4.2 8.5s4.2 3.9 4.2 8.5"/></symbol>
+    <symbol id="i-thermo" viewBox="0 0 24 24"><path d="M10 14.2V5.5a2 2 0 0 1 4 0v8.7a4 4 0 1 1-4 0z"/><path d="M12 16.5V9.5"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 21c-3.6 0-6-2.5-6-5.8 0-3.6 2.6-5.4 3.6-8.7 2.4 1.5 3.4 3.4 3.4 5.4.9-.7 1.5-1.9 1.6-3.1 2.1 1.6 3.4 3.8 3.4 6.4 0 3.3-2.4 5.8-6 5.8z"/></symbol>
+    <symbol id="i-basket" viewBox="0 0 24 24"><path d="M3.5 10h17l-1.6 8.3a2 2 0 0 1-2 1.7H7.1a2 2 0 0 1-2-1.7z"/><path d="M8 10l3-5.5M16 10l-3-5.5M9.5 13.5v3M14.5 13.5v3"/></symbol>
+    <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M4 16.5 16.5 4l3.5 3.5L7.5 20z"/><path d="m8 12.5 1.8 1.8M10.5 10l1.8 1.8M13 7.5l1.8 1.8"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M8.6 8.6h.01M15.4 8.6h.01M12 12h.01M8.6 15.4h.01M15.4 15.4h.01" stroke-width="2.6"/></symbol>
+    <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6.5" cy="17.5" r="2.6"/><circle cx="17.5" cy="17.5" r="2.6"/><path d="M8.4 15.7 17.5 4M15.6 15.7 6.5 4"/></symbol>
+    <symbol id="i-dome" viewBox="0 0 24 24"><path d="M3.5 19h17"/><path d="M5.5 19a6.5 6.5 0 0 1 13 0"/><path d="M8.8 13.6a3.6 3.6 0 0 1 2.4-1.9"/><path d="M12 4.5v2.5M7.2 6.2l1.2 1.9M16.8 6.2l-1.2 1.9"/></symbol>
+    <symbol id="i-flower" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.3"/><path d="M12 9.7c-1.7-2.5-1.7-4.6 0-6.2 1.7 1.6 1.7 3.7 0 6.2zM12 14.3c1.7 2.5 1.7 4.6 0 6.2-1.7-1.6-1.7-3.7 0-6.2zM9.7 12c-2.5 1.7-4.6 1.7-6.2 0 1.6-1.7 3.7-1.7 6.2 0zM14.3 12c2.5-1.7 4.6-1.7 6.2 0-1.6 1.7-3.7 1.7-6.2 0z"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 3.5 12.9 9l5.6 2-5.6 2-1.9 5.5L9.1 13l-5.6-2 5.6-2z"/><path d="M18.5 15.5v4.5M16.25 17.75h4.5"/></symbol>
+  </svg>
+
+  <div class="app">
+    <header class="top">
+      <div class="top__titles">
+        <nav class="apps" aria-label="Onderdeel">
+          <a class="apps__btn" href="#taken" data-act="app" data-app="taken" aria-current="page">Taken</a>
+        </nav>
+        <p class="top__sub" id="sub">Laden…</p>
+      </div>
+      <div class="top__right">
+        <span class="link" id="link" role="status"></span>
+        <button class="top__btn" type="button" data-act="recipe-open" aria-label="Recept naar het display" title="Recept naar het display"><svg class="i" aria-hidden="true"><use href="#i-pot"/></svg></button>
+      </div>
+    </header>
+    <div id="tasks-view">
+      <nav class="filters" id="filters" aria-label="Categorie"></nav>
+      <main id="list" aria-live="polite"></main>
+    </div>
+  </div>
+
+  <form class="add" id="add" autocomplete="off">
+    <div class="add__opts" id="add-opts"></div>
+    <div class="add__row">
+      <input class="add__input" id="add-title" type="text" placeholder="Nieuwe taak" aria-label="Nieuwe taak" maxlength="200" enterkeyhint="done">
+      <button class="add__send" type="submit" aria-label="Taak toevoegen"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg></button>
+    </div>
+  </form>
+
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet__backdrop" data-act="close"></div>
+    <form class="sheet__panel" id="edit" autocomplete="off" aria-label="Taak aanpassen">
+      <label class="field"><span class="field__label">Taak</span><input class="field__input" id="edit-title" type="text" maxlength="200" enterkeyhint="done"></label>
+      <div class="field"><span class="field__label">Categorie</span><div class="chips" id="edit-cats"></div></div>
+      <div class="field"><span class="field__label">Tegen wanneer</span><div class="chips" id="edit-due"></div></div>
+      <div class="sheet__actions">
+        <button class="btn btn--danger" type="button" data-act="delete"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg>Verwijderen</button>
+        <button class="btn btn--primary" type="submit">Opslaan</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="sheet" id="recipe-sheet" hidden>
+    <div class="sheet__backdrop" data-act="recipe-close"></div>
+    <form class="sheet__panel" id="recipe-form" autocomplete="off" aria-label="Recept naar het display">
+      <div class="rsend__head"><svg class="i" aria-hidden="true"><use href="#i-pot"/></svg><h2>Recept naar het display</h2></div>
+      <label class="field"><span class="field__label">Link naar het recept</span><input class="field__input" id="recipe-url" type="url" inputmode="url" placeholder="https://…" enterkeyhint="send" required></label>
+      <p class="rsend__hint" id="recipe-hint">Plak de link van een receptpagina. Het display haalt de ingrediënten en de stappen op en opent het recept.</p>
+      <div class="sheet__actions">
+        <button class="btn" type="button" data-act="recipe-close">Annuleren</button>
+        <button class="btn btn--primary" type="submit">Stuur naar display</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:2rem">De app heeft JavaScript nodig.</p></noscript>
+</body>
+</html>

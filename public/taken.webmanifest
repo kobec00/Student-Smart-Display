@@ -1,0 +1,17 @@
+{
+  "name": "Lumen Taken",
+  "short_name": "Taken",
+  "description": "Your task list, live-linked to your Lumen display.",
+  "start_url": "/taken",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050607",
+  "theme_color": "#050607",
+  "lang": "nl",
+  "icons": [
+    { "src": "icons/taken.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/taken-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/taken-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
