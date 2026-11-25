@@ -84,7 +84,7 @@ const toneOf = (id) => catOf(id)?.tone ?? '';
 const eventTone = (e) => e.tone || toneOf(e.category);
 
 // ── Navigatie (staat in de URL) ─────────────────────────────
-const PATHS = { overzicht: '/', agenda: '/agenda', taken: '/taken', school: '/school', recept: '/recept', weer: '/weer' };
+const PATHS = { overzicht: '/', agenda: '/agenda', taken: '/taken', school: '/school', energie: '/energie', recept: '/recept', weer: '/weer' };
 // Weer heeft geen knop in de zijbalk; daar licht dan Overzicht op (je komt er via het weer op het overzicht).
 const RAIL_OF = { weer: 'overzicht' };
 const VIEWS = Object.fromEntries(Object.entries(PATHS).map(([k, v]) => [v, k]));
@@ -141,8 +141,10 @@ function render() {
     return;
   }
   renderSystem(d.system);
+  $('.rail__btn[data-view="energie"]').hidden = !enOn(d.energy);
 
   if (view === 'overzicht') {
+    renderOvEnergy(d.energy);
     renderOvWeather(d);
     renderOvAgenda(d);
     renderOvTodos(d);
@@ -157,6 +159,8 @@ function render() {
     renderRecipe(d, q);
   } else if (view === 'weer') {
     renderWeather(d, q);
+  } else if (view === 'energie') {
+    renderEnergy(d);
   }
   updateMorning(new Date());
   updateNight(new Date());
@@ -1376,6 +1380,222 @@ const weatherActions = {
   },
 };
 
+// ── Energie ─────────────────────────────────────────────────
+// Zonnepanelen, thuisbatterij en het net (Huawei SUN2000 + LUNA2000, lokaal via Modbus TCP).
+// Het overzicht krijgt één regel onder de datum; het tabblad Energie toont de stroom nu, de batterij,
+// de dagtotalen, het verloop van vandaag en de voorbije dagen. Het verloop komt van /api/energy,
+// pas als je kijkt, en ververst dan elke 15 s.
+state.en = { data: null, at: 0, failedAt: 0, loading: false };
+
+async function loadEn(force = false) {
+  const e = state.en;
+  if (e.loading || (!force && e.data && Date.now() - e.at < 12_000) || Date.now() - e.failedAt < 20_000) return;
+  e.loading = true;
+  try {
+    const d = await api('GET', '/api/energy');
+    if (d.state === 'ok' || d.state === 'stale') {
+      e.data = d;
+      e.at = Date.now();
+    } else e.failedAt = Date.now();
+  } catch {
+    e.failedAt = Date.now();
+  } finally {
+    e.loading = false;
+  }
+  if (route().view === 'energie') render();
+}
+
+const enOn = (en) => en && en.state !== 'off';
+const dec = (v, d = 1) => v.toFixed(d).replace('.', ',');
+// Vermogen: onder 1 kW in watt, daarboven in kW met één cijfer na de komma.
+const powerParts = (w) => {
+  const a = Math.abs(w ?? 0);
+  return a < 1000 ? [String(Math.round(a)), 'W'] : [dec(a / 1000, a < 10_000 ? 1 : 0), 'kW'];
+};
+const powerHtml = (w) => {
+  const [v, u] = powerParts(w);
+  return `${v}<small>${u}</small>`;
+};
+const powerText = (w) => powerParts(w).join(' ');
+const kwhText = (v) => (Number.isFinite(v) ? `${dec(v, v >= 100 ? 0 : 1)} kWh` : '–');
+const IDLE_W = 30; // minder dan dit is "stil"
+
+function renderOvEnergy(en) {
+  const el = $('#ov-energy');
+  const on = en?.state === 'ok' || en?.state === 'stale';
+  el.hidden = !on;
+  if (!on) return paint(el, '');
+  const n = en.now;
+  const parts = [`<span data-k="pv">${icon('i-panel')}${powerText(n.pv)}</span>`];
+  if (n.battery) parts.push(`<span data-k="bat">${icon('i-battery')}${Math.round(n.battery.soc)}%${Math.abs(n.battery.power) >= IDLE_W ? (n.battery.power > 0 ? ' ↑' : ' ↓') : ''}</span>`);
+  if (Number.isFinite(n.grid)) parts.push(`<span data-k="grid">${icon('i-pylon')}${Math.abs(n.grid) < IDLE_W ? '0 W' : `${n.grid > 0 ? '' : '−'}${powerText(n.grid)}`}</span>`);
+  paint(el, parts.join(''));
+}
+
+// Stroom nu: de zon boven, het net links, het huis rechts, de batterij onder, de omvormer in het midden.
+// Een pijltje op elke verbinding wijst waar de stroom heen gaat (geen animatie: de Pi Zero zegt dank).
+function enFlowHtml(en) {
+  const n = en.now;
+  const arm = (pos, w, dirIn, dirOut, kind) => {
+    const on = Number.isFinite(w) && Math.abs(w) >= IDLE_W;
+    const rot = { r: 0, d: 90, l: 180, u: 270 }[w > 0 ? dirIn : dirOut];
+    return `<span class="farm farm--${pos}${on ? ` is-on` : ''}" data-k="${kind}">${on ? `<svg class="i" style="transform:rotate(${rot}deg)" aria-hidden="true"><use href="#i-chev-right"/></svg>` : ''}</span>`;
+  };
+  const node = (pos, kind, ic, value, label, sub = '') =>
+    `<div class="fnode fnode--${pos}" data-k="${kind}"><span class="fnode__ic">${icon(ic)}</span><span class="fnode__text"><b>${value}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ''}</span></div>`;
+  const grid = n.grid;
+  const gridLabel = !Number.isFinite(grid) ? 'Net' : Math.abs(grid) < IDLE_W ? 'Net, stil' : grid > 0 ? 'Afname' : 'Injectie';
+  const b = n.battery;
+  const batLabel = !b ? '' : Math.abs(b.power) < IDLE_W ? 'Batterij, rust' : b.power > 0 ? `Laadt ${powerText(b.power)}` : `Levert ${powerText(b.power)}`;
+  const inv = n.inverter;
+  return (
+    cardHead('Nu', `<span class="en-inv" data-kind="${inv.kind}">${esc(inv.label)}</span>`, 'i-bolt', 'honey') +
+    `<div class="flow${b ? '' : ' flow--nobat'}">` +
+    node('pv', 'pv', 'i-panel', powerHtml(n.pv), 'Zon') +
+    arm('pv', n.pv, 'd', 'u', 'pv') +
+    (Number.isFinite(grid) ? node('grid', 'grid', 'i-pylon', powerHtml(grid), gridLabel) + arm('grid', grid, 'r', 'l', 'grid') : '<span class="fnode fnode--grid"></span><span class="farm farm--grid"></span>') +
+    `<span class="fhub" data-kind="${inv.kind}" title="Omvormer"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12.5" class="mark-ring"/><path d="M16 3.5a12.5 12.5 0 0 1 12.5 12.5" class="mark-arc"/><circle cx="16" cy="16" r="2.6" class="mark-dot"/></svg></span>` +
+    (Number.isFinite(n.load) ? arm('home', n.load, 'r', 'l', 'home') + node('home', 'home', 'i-home', powerHtml(n.load), 'Huis') : '<span class="farm farm--home"></span><span class="fnode fnode--home"></span>') +
+    (b ? arm('bat', b.power, 'd', 'u', 'bat') + node('bat', 'bat', 'i-battery', `${Math.round(b.soc)}<small>%</small>`, batLabel) : '') +
+    `</div>`
+  );
+}
+
+function enBatteryHtml(en) {
+  const b = en.now.battery;
+  if (!b) return cardHead('Batterij', '', 'i-battery', 'honey') + '<p class="empty">Geen thuisbatterij gevonden.</p>';
+  const t = en.today;
+  const soc = Math.max(0, Math.min(100, b.soc));
+  let line = 'In rust';
+  if (b.power >= IDLE_W) line = `Laadt met ${powerText(b.power)}`;
+  else if (b.power <= -IDLE_W) line = `Levert ${powerText(b.power)}`;
+  let eta = '';
+  if (b.eta) {
+    const at = new Date(b.eta.at);
+    const day = iso(at) === today() ? '' : iso(at) === addDays(today(), 1) ? 'morgen ' : `${clean(F.wd.format(at))} `;
+    eta = `${b.eta.kind === 'full' ? 'Vol' : 'Leeg'} rond ${day}${F.time.format(at)}`;
+  } else if (soc >= 99) eta = 'Helemaal vol';
+  return (
+    cardHead('Batterij', b.capacityKwh ? `${dec(b.capacityKwh)} kWh` : '', 'i-battery', 'honey') +
+    `<div class="enb"><div class="enb__gauge${soc <= 15 ? ' is-low' : ''}" role="img" aria-label="Batterij ${Math.round(soc)} procent"><span style="height:${soc.toFixed(1)}%"></span></div>` +
+    `<div class="enb__main"><span class="enb__soc">${Math.round(soc)}<small>%</small></span><b>${line}</b>${eta ? `<span>${eta}</span>` : ''}</div></div>` +
+    `<div class="enb__rows"><div><span>Vandaag geladen</span><b>${kwhText(t.charge)}</b></div><div><span>Vandaag geleverd</span><b>${kwhText(t.discharge)}</b></div></div>`
+  );
+}
+
+function enTodayHtml(en) {
+  const t = en.today;
+  const bar = (label, pct, help) =>
+    Number.isFinite(pct)
+      ? `<div class="enr"><div class="enr__top"><span>${label}</span><b>${pct}%</b></div><span class="enr__bar"><i style="width:${pct}%"></i></span><small>${help}</small></div>`
+      : '';
+  const row = (k, label, v) => `<div class="ent__row" data-k="${k}"><i></i><span>${label}</span><b>${kwhText(v)}</b></div>`;
+  return (
+    cardHead('Vandaag', t.partial && t.since ? `net sinds ${F.time.format(new Date(t.since))}` : '', 'i-sun', 'honey') +
+    `<div class="ent__big"><span class="ent__num">${dec(t.pv)}<small>kWh</small></span><span>opgewekt door de zon</span></div>` +
+    `<div class="ent__rows">${Number.isFinite(t.load) ? row('home', 'Verbruik huis', t.load) : ''}${Number.isFinite(t.import) ? row('grid', t.partial ? 'Afgenomen (sinds start)' : 'Afgenomen van het net', t.import) : ''}${Number.isFinite(t.export) ? row('export', t.partial ? 'Teruggeleverd (sinds start)' : 'Teruggeleverd', t.export) : ''}</div>` +
+    (t.partial ? `<p class="ent__note">Lumen houdt de meter vandaag pas ${t.since ? `sinds ${F.time.format(new Date(t.since))}` : 'sinds de start'} bij. Vanaf morgen zie je hier je verbruik en hoeveel je zelf opwekt.</p>` : '') +
+    `<div class="ent__bars">${bar('Zelfvoorzienend', t.autarky, 'van je verbruik kwam niet van het net')}${bar('Eigen verbruik', t.selfUse, 'van je zonnestroom bleef in huis')}</div>`
+  );
+}
+
+// Verloop van vandaag (00:00 tot 24:00): zon als vlak, huis als lijn, batterij in % als dunne lijn.
+function enChartHtml(en, now) {
+  const h = en.history ?? [];
+  const slot = en.slotMinutes ?? 5;
+  const hasLoad = h.some((p) => Number.isFinite(p.load));
+  const hasSoc = h.some((p) => Number.isFinite(p.soc));
+  const peak = Math.max(500, ...h.map((p) => Math.max(p.pv ?? 0, p.load ?? 0)));
+  const top = Math.ceil(peak / 500) * 500;
+  const X = (m) => ((m + slot / 2) / 1440) * 1000;
+  const Y = (w) => 100 - (Math.max(0, w) / top) * 92;
+  const Ys = (s) => 100 - (s / 100) * 92;
+  // Een gat in de metingen (server even uit) onderbreekt de lijn in plaats van er een rechte over te trekken.
+  const segments = (key) => {
+    const out = [];
+    let cur = [];
+    let prev = null;
+    for (const p of h) {
+      if (!Number.isFinite(p[key]) || (prev && p.m - prev.m > slot * 2)) {
+        if (cur.length) out.push(cur);
+        cur = [];
+      }
+      if (Number.isFinite(p[key])) cur.push(p);
+      prev = p;
+    }
+    if (cur.length) out.push(cur);
+    return out;
+  };
+  const pts = (seg, key, f) => seg.map((p) => `${X(p.m).toFixed(1)},${f(p[key]).toFixed(1)}`).join(' ');
+  let svg = '';
+  for (const seg of segments('pv')) {
+    if (seg.length < 2) continue;
+    svg += `<polygon class="enc__pv" points="${X(seg[0].m).toFixed(1)},100 ${pts(seg, 'pv', Y)} ${X(seg.at(-1).m).toFixed(1)},100"/>`;
+    svg += `<polyline class="enc__pvline" points="${pts(seg, 'pv', Y)}"/>`;
+  }
+  if (hasLoad) for (const seg of segments('load')) if (seg.length > 1) svg += `<polyline class="enc__load" points="${pts(seg, 'load', Y)}"/>`;
+  if (hasSoc) for (const seg of segments('soc')) if (seg.length > 1) svg += `<polyline class="enc__soc" points="${pts(seg, 'soc', Ys)}"/>`;
+  const nowX = ((now.getHours() * 60 + now.getMinutes()) / 1440) * 100;
+  const hours = [0, 3, 6, 9, 12, 15, 18, 21].map((hr) => `<span style="left:${((hr * 60) / 1440) * 100}%">${pad(hr)}u</span>`).join('');
+  const legend =
+    `<span class="enc__key" data-k="pv">Zon</span>` + (hasLoad ? `<span class="enc__key" data-k="home">Huis</span>` : '') + (hasSoc ? `<span class="enc__key" data-k="soc">Batterij %</span>` : '');
+  return (
+    cardHead('Verloop vandaag', legend, 'i-clock', 'honey') +
+    `<div class="enc"><div class="enc__plot"><span class="enc__max">${powerText(top)}</span>` +
+    `<svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><line class="enc__grid" x1="0" x2="1000" y1="54" y2="54"/><line class="enc__grid" x1="0" x2="1000" y1="8" y2="8"/>${svg}</svg>` +
+    `<i class="enc__now" style="left:${nowX.toFixed(2)}%"></i></div><div class="enc__hours">${hours}</div></div>`
+  );
+}
+
+function enWeekHtml(en, now) {
+  const t = en.today;
+  const days = [...(en.days ?? []).filter((d) => d.date < today()).slice(-6), { ...t, date: today() }];
+  const max = Math.max(1, ...days.map((d) => Math.max(d.pv ?? 0, d.load ?? 0)));
+  const cols = days
+    .map((d) => {
+      const isToday = d.date === today();
+      const label = isToday ? 'nu' : clean(F.wd.format(fromIso(d.date))).slice(0, 2);
+      const hPv = ((d.pv ?? 0) / max) * 100;
+      const hLoad = Number.isFinite(d.load) ? (d.load / max) * 100 : null;
+      return (
+        `<div class="enw__day${isToday ? ' is-today' : ''}" title="${esc(shortDate(d.date))}: ${kwhText(d.pv)} zon${Number.isFinite(d.load) ? `, ${kwhText(d.load)} verbruik` : ''}">` +
+        `<small>${dec(d.pv ?? 0)}</small><div class="enw__bars"><span data-k="pv" style="height:${hPv.toFixed(1)}%"></span>${hLoad !== null ? `<span data-k="home" style="height:${hLoad.toFixed(1)}%"></span>` : ''}</div><span>${label}</span></div>`
+      );
+    })
+    .join('');
+  // Nog geen week geschiedenis: vandaag staat toch rechts, de lege dagen vullen zich van rechts naar links.
+  const blanks = '<div class="enw__day"></div>'.repeat(Math.max(0, 7 - days.length));
+  const legend = `<span class="enc__key" data-k="pv">Zon</span>${days.some((d) => Number.isFinite(d.load)) ? '<span class="enc__key" data-k="home">Verbruik</span>' : ''}`;
+  return cardHead('Per dag', legend, 'i-calendar', 'honey') + `<div class="enw">${blanks}${cols}</div>`;
+}
+
+function renderEnergy(d) {
+  loadEn();
+  const live = state.en.data;
+  const en = d.energy;
+  const now = new Date();
+  if (!enOn(en)) {
+    for (const id of ['#en-flow', '#en-bat', '#en-today', '#en-chart', '#en-week']) paint($(id), '');
+    paint($('#en-flow'), notice('Energie staat uit. Vul "energy" in config.json in (zie README).'));
+    return;
+  }
+  // De samenvatting op het dashboard is soms nieuwer dan het laatst opgehaalde verloop: neem de verste.
+  const src = live && (!en.updatedAt || live.updatedAt >= en.updatedAt) ? live : live ? { ...live, now: en.now, today: en.today, state: en.state, updatedAt: en.updatedAt } : null;
+  if (!src?.now) {
+    const msg = en.state === 'error' ? notice(`Geen verbinding met de omvormer: ${en.error}`) : '<div class="skel"><span></span><span></span><span></span></div>';
+    for (const id of ['#en-flow', '#en-bat', '#en-today', '#en-chart', '#en-week']) paint($(id), id === '#en-flow' ? msg : '');
+    paint($('#en-meta'), '');
+    return;
+  }
+  const stale = en.state === 'stale' ? `<span class="en-stale">${icon('i-alert')}geen verbinding sinds ${F.time.format(new Date(src.updatedAt))}</span>` : `<span>bijgewerkt ${F.time.format(new Date(src.updatedAt))}</span>`;
+  paint($('#en-meta'), `${demoTag(src.demo, 'Voorbeeld')}${stale}`);
+  paint($('#en-flow'), enFlowHtml(src));
+  paint($('#en-bat'), enBatteryHtml(src));
+  paint($('#en-today'), enTodayHtml(src));
+  paint($('#en-chart'), enChartHtml(src, now));
+  paint($('#en-week'), enWeekHtml(src, now));
+}
+
 // ── Recept ──────────────────────────────────────────────────
 // Een recept dat je vanaf je gsm stuurt, opent hier vanzelf: ingrediënten om af te vinken,
 // stap voor stap in grote letters en kookwekkers die uit de stappen zelf komen.
@@ -2451,6 +2671,10 @@ tick();
 setInterval(tick, 1000);
 load();
 setInterval(load, 30_000);
+// Op het tabblad Energie verandert het vermogen voortdurend: haal dan elke 15 s het verloop op.
+setInterval(() => {
+  if (route().view === 'energie' && !document.hidden) loadEn(true);
+}, 15_000);
 
 // Live koppeling: de server meldt elke wijziging, zodat een taak die je op je
 // gsm toevoegt meteen op het display staat (en omgekeerd).

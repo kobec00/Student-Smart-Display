@@ -64,6 +64,10 @@
     <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></symbol>
     <symbol id="i-air" viewBox="0 0 24 24"><path d="M3 8.5c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0M3 13c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0M3 17.5c2-1.6 4-1.6 6 0s4 1.6 6 0 4-1.6 6 0"/></symbol>
     <symbol id="i-umbrella" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5h-17A8.5 8.5 0 0 1 12 3.5zM12 12v6.5a2 2 0 0 0 4 0M12 2v1.5"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2.8 5 13.5h6l-1 7.7 8-10.7h-6z"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><path d="M5.2 5.5h13.6l2.2 10H3z"/><path d="M12 5.5v10M4.1 10.5h15.8M8.6 5.5l-.9 10M15.4 5.5l.9 10M12 15.5v4M8.5 19.5h7"/></symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24"><rect x="6.5" y="4.5" width="11" height="16.5" rx="2.2"/><path d="M10 2.8h4M9.5 16.5h5M9.5 13h5"/></symbol>
+    <symbol id="i-pylon" viewBox="0 0 24 24"><path d="M9 3h6M8.2 21 10 3M15.8 21 14 3M5 7.5h14M6.5 12h11M9.7 7.5l4.8 4.5M14.3 7.5 9.5 12M8.8 12l6.4 9M15.2 12l-6.4 9"/></symbol>
     <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="1.8"/><path d="m9.5 21 2.2-6.5L14 17v4M8 12.5l2.5-4.5h3l2 3.5 2.5 1M11.7 14.5 13.2 8"/></symbol>
   </svg>
 
@@ -74,6 +78,7 @@
       <a class="rail__btn" href="#/agenda" data-view="agenda" data-hue="apricot" aria-label="Agenda" title="Agenda"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg><span>Agenda</span></a>
       <a class="rail__btn" href="#/taken" data-view="taken" data-hue="honey" aria-label="Taken" title="Taken"><svg class="i" aria-hidden="true"><use href="#i-list"/></svg><span>Taken</span></a>
       <a class="rail__btn" href="#/school" data-view="school" data-hue="sky" aria-label="School" title="School"><svg class="i" aria-hidden="true"><use href="#i-school"/></svg><span>School</span></a>
+      <a class="rail__btn" href="#/energie" data-view="energie" data-hue="honey" aria-label="Energie" title="Energie" hidden><svg class="i" aria-hidden="true"><use href="#i-bolt"/></svg><span>Energie</span></a>
       <a class="rail__btn" href="#/recept" data-view="recept" data-hue="lilac" aria-label="Recept" title="Recept"><svg class="i" aria-hidden="true"><use href="#i-pot"/></svg><span>Recept</span></a>
       <div class="rail__sys" id="sys" aria-label="Systeem"></div>
     </nav>
@@ -86,6 +91,7 @@
             <p class="clock__greet" id="clock-greet" data-hue="rose"></p>
             <div class="clock__row"><time class="clock__time" id="clock-time">--:--</time><span class="clock__sec" id="clock-sec"></span></div>
             <div class="clock__date"><span id="clock-date"></span><i class="spectrum" aria-hidden="true"></i></div>
+            <a class="clock__energy" id="ov-energy" href="#/energie" hidden aria-label="Energie: tik voor zonnepanelen en batterij"></a>
           </div>
           <div class="clock__wx" id="ov-now"></div>
         </div>
@@ -139,6 +145,18 @@
           <div class="wx-tiles" id="wx-tiles"></div>
           <section class="card wx-hours" id="wx-hours" aria-label="Per uur"></section>
           <section class="card wx-week" id="wx-week" aria-label="Komende dagen"></section>
+        </div>
+      </div>
+
+      <!-- Energie: zonnepanelen, thuisbatterij en het net (alleen als energy in config.json staat) -->
+      <div class="view page" data-view="energie" hidden>
+        <header class="page-head"><h1 data-hue="honey"><span class="page-ic"><svg class="i" aria-hidden="true"><use href="#i-bolt"/></svg></span>Energie</h1><span class="page-head__meta" id="en-meta"></span><span class="page-clock"></span></header>
+        <div class="page__body en" id="en">
+          <section class="card en-flow" id="en-flow" aria-label="Stroom nu"></section>
+          <section class="card en-bat" id="en-bat" aria-label="Thuisbatterij"></section>
+          <section class="card en-today" id="en-today" aria-label="Vandaag"></section>
+          <section class="card en-chart" id="en-chart" aria-label="Verloop vandaag"></section>
+          <section class="card en-week" id="en-week" aria-label="Voorbije dagen"></section>
         </div>
       </div>
 

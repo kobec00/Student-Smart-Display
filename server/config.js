@@ -17,6 +17,9 @@ const DEFAULTS = {
   ],
   // Afvalophaling (Recycle!): vul je adres in en de ophaaltaken komen vanzelf op de takenlijst.
   waste: { postcode: '', street: '', houseNumber: '', category: 'kot', putOut: 'evening', showDaysBefore: 1 },
+  // Zonnepanelen en thuisbatterij (Huawei SUN2000 + LUNA2000) via Modbus TCP. host leeg = uit;
+  // demo: true toont een gesimuleerde installatie.
+  energy: { host: '', port: 502, unit: 1, interval: 15, batteryReserve: 5, demo: false },
   network: { pingHost: '1.1.1.1', pingPort: 443 },
   display: {
     nightStart: '23:00',

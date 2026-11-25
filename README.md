@@ -43,6 +43,7 @@ It's built to be cheap to run on a tiny computer: one small Node server, plain H
 | **Weather** | Tap the weather for rain per 15 minutes, the best moment to go outside, wind, UV, humidity, air quality and pollen, sun and moon, and 7 days ahead. Free, from Open-Meteo, no key. |
 | **Recipe & timers** | Send a recipe link from your phone: ingredients to tick off, one step at a time in large type, and kitchen timers pulled from the steps. |
 | **Waste pickup** *(Belgium, optional)* | Fill in your address and "put the bins out" appears on your task list the evening before. |
+| **Solar & home battery** *(Huawei, optional)* | Live power from your panels, the house, the battery and the grid, today's totals, the day as a curve and the past week. Read straight from a Huawei SUN2000 inverter over your own network, no FusionSolar account. |
 
 Light and dark switch automatically at sunrise and sunset for your location.
 
@@ -64,6 +65,12 @@ Light and dark switch automatically at sunrise and sunset for your location.
   <tr>
     <td><b>Morning</b>: your day in one look, from 06:00 to 11:00.</td>
     <td><b>Weather</b>: rain per quarter hour, the best time to go out.</td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/screenshots/energy.png" alt="Energy view: power flowing from the sun to the battery and the house, the battery at 30 percent, today's totals, the day as a curve and a bar per day"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><b>Energy</b> <i>(optional)</i>: solar panels, home battery and grid, live from a Huawei inverter.</td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/agenda.png" alt="Agenda as a week grid with the current hour marked"></td>
@@ -373,10 +380,41 @@ Uses the free Recycle! calendar (Fost Plus). Your address is only sent to Recycl
 
 ---
 
+### Solar panels and home battery (Huawei, optional)
+
+Lumen reads a **Huawei SUN2000** inverter (built on Huawei's register map for the SUN2000-L1 hybrid series, with a **LUNA2000** battery and a DTSU666-H / DDSU666-H smart meter) directly over **Modbus TCP**, in your own network. No FusionSolar account, no cloud, no extra software.
+
+```json
+"energy": { "host": "192.168.1.50", "port": 502, "unit": 1, "interval": 15, "batteryReserve": 5 }
+```
+
+| Key | |
+| --- | --- |
+| `host` | IP address of the Smart Dongle (SDongleA-05) on your network. Give it a fixed address in your router. Empty = off. |
+| `port` | `502` for the Smart Dongle. |
+| `unit` | Modbus unit id of the inverter. `1` behind a Smart Dongle; try `0` if you get no answer. |
+| `interval` | Seconds between readings (default 15). |
+| `batteryReserve` | The end-of-discharge level of your battery in %, used for "empty around …" (default 5). |
+| `batteryKwh` | Only if Lumen can't read the battery size itself. |
+| `demo` | `true` shows a simulated house with 4.6 kWp and a 5 kWh battery, so you can see the view before you set anything up. |
+
+**Turn on Modbus TCP first.** It is off by default. Set Modbus TCP to **Enable (unrestricted)** in the dongle's communication settings, through *Device commissioning* in the FusionSolar app (see the manual of your SDongleA-05 or SDongle FE). Don't see the setting? Your installer can switch it on in FusionSolar Web. The [huawei_solar wiki](https://github.com/wlcrs/huawei_solar/wiki/Connecting-to-the-inverter) explains the options and links Huawei's Modbus TCP guides for both dongles.
+
+What you get: an **Energy** button in the sidebar (only when it's configured), one line under the date on the overview (sun, battery, grid), and the Energy view with the power right now, the battery, today's totals, the day as a curve and the past week.
+
+Good to know:
+- Connections through the dongle are known to drop now and then (it restarts when it can't reach your router or the FusionSolar cloud). Lumen keeps the last values, says since when it has no connection, and reconnects by itself.
+- If you also read the inverter from Home Assistant (huawei_solar), both talk to the same dongle. Should readings get flaky, let one of them do it.
+- "Generated today" is calculated the way FusionSolar does it: the inverter's daily yield (what leaves on the AC side, battery included) plus what went into the battery minus what came out. Expect it to be within a few percent of the app, not identical.
+- Grid import and export per day come from the meter's counters at midnight, kept in `data/energy.json`. On the very first day Lumen only knows them from the moment it started, so it leaves out daily consumption and the percentages until the next day.
+
+---
+
 ## Privacy and security
 
 - **Nothing leaves your network** except the requests Lumen makes itself: your calendars' ICS links, TimeEdit, Open-Meteo (your coordinates) and, if you use it, Recycle! (your address).
 - Calendar links and your address live only in `config.json` on the Pi. The browser never sees them.
+- Your inverter is only read over your local network (Modbus TCP, read-only: Lumen never writes a register). The browser only sees the numbers.
 - There is **no login**: anyone on your network can edit tasks. Use it at home or through a VPN and never forward a port to it.
 - Your tasks and recipes are stored as plain JSON in `data/`.
 
@@ -393,7 +431,8 @@ server/              Node server, no framework (one dependency: ical.js)
   index.js           routes, live updates (server-sent events), static files
   config.js          defaults + config.json
   demo.js            example agenda and tasks
-  providers/         calendar, school, timeedit, weather, todos, recipe, waste, system
+  modbus.js          a tiny read-only Modbus TCP client (no dependency)
+  providers/         calendar, school, timeedit, weather, todos, recipe, waste, energy, system
 public/              the dashboard: plain HTML, CSS and JS modules
   index.html         the wall display
   taken.html         the pocket app

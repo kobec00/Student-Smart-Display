@@ -31,6 +31,15 @@
     "showDaysBefore": 1
   },
 
+  "energy": {
+    "host": "",
+    "port": 502,
+    "unit": 1,
+    "interval": 15,
+    "batteryReserve": 5,
+    "demo": false
+  },
+
   "display": {
     "nightStart": "23:00",
     "nightEnd": "07:00",

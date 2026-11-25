@@ -853,8 +853,148 @@ main { min-width: 0; min-height: 0; display: grid; grid-template: minmax(0, 1fr)
 .wxd__bar > span { position: absolute; top: 0; bottom: 0; min-width: 0.45rem; border-radius: 999px; background: linear-gradient(90deg, var(--c1), var(--c2)); }
 .wxd__bar > i { position: absolute; top: 50%; width: 0.65rem; height: 0.65rem; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 2.5px var(--card-solid); transform: translate(-50%, -50%); }
 
+/* ── Energie ──
+   Zon in amber, de batterij in groen, het net in violet, het huis neutraal. Geen animaties. */
+[data-k="pv"] { --k: var(--amber); } [data-k="bat"], [data-k="soc"] { --k: var(--green); }
+[data-k="grid"] { --k: var(--violet); } [data-k="home"] { --k: var(--text-2); } [data-k="export"] { --k: var(--amber); }
+
+/* op het overzicht: één regel onder de datum */
+.clock__energy { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1rem; margin-top: 0.75rem; color: var(--text-2); font-size: 1rem; font-weight: 750; text-decoration: none; }
+.clock__energy span { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
+.clock__energy .i { width: 1.15rem; height: 1.15rem; stroke-width: 1.9; color: var(--k); }
+.clock__energy:active { opacity: 0.7; }
+
+.en {
+  display: grid; gap: var(--gap);
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1.12fr) minmax(0, 1fr);
+  grid-template-areas: "flow bat today" "chart chart week";
+}
+.en-flow { grid-area: flow; } .en-bat { grid-area: bat; } .en-today { grid-area: today; }
+.en-chart { grid-area: chart; } .en-week { grid-area: week; }
+.en-inv { display: inline-flex; align-items: center; gap: 0.4rem; }
+.en-inv::before { content: ""; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--faint); }
+.en-inv[data-kind="run"]::before { background: var(--green); }
+.en-inv[data-kind="fault"]::before { background: var(--red); }
+.en-inv[data-kind="fault"] { color: var(--red); }
+.en-stale { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--red); }
+.en-stale .i { width: 1.1rem; height: 1.1rem; }
+
+/* stroom nu: een kruis met de omvormer in het midden */
+.flow {
+  flex: 1; min-height: 0; display: grid; align-items: center; justify-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(1.5rem, 0.7fr) auto minmax(1.5rem, 0.7fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0.8rem, 1fr) auto minmax(0.8rem, 1fr) auto;
+  grid-template-areas: ". . pv . ." ". . apv . ." "grid agrid hub ahome home" ". . abat . ." ". . bat . .";
+}
+.flow--nobat { grid-template-rows: auto minmax(0.8rem, 1fr) auto 0 0; }
+.fnode { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+.fnode--pv { grid-area: pv; flex-direction: column-reverse; gap: 0.35rem; }
+.fnode--bat { grid-area: bat; flex-direction: column; gap: 0.35rem; }
+.fnode--grid { grid-area: grid; flex-direction: row-reverse; justify-self: end; }
+.fnode--home { grid-area: home; justify-self: start; }
+.fnode__ic { display: grid; place-items: center; flex: none; width: 3.3rem; height: 3.3rem; border-radius: 50%; background: color-mix(in srgb, var(--k) 16%, var(--card-solid)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--k) 45%, transparent); color: var(--k); }
+.fnode__ic .i { width: 1.6rem; height: 1.6rem; stroke-width: 1.8; }
+.fnode__text { display: grid; min-width: 0; line-height: 1.15; }
+.fnode--pv .fnode__text, .fnode--bat .fnode__text { justify-items: center; text-align: center; }
+.fnode--grid .fnode__text { justify-items: end; text-align: right; }
+.fnode__text b { font-family: var(--font-display); font-size: 1.7rem; font-weight: 440; letter-spacing: -0.02em; white-space: nowrap; }
+.fnode__text b small { margin-left: 0.2rem; font-family: var(--font); font-size: 0.875rem; font-weight: 800; letter-spacing: 0; color: var(--text-2); }
+.fnode__text > span { font-size: 0.875rem; font-weight: 750; color: var(--muted); white-space: nowrap; }
+.farm { position: relative; display: grid; place-items: center; align-self: stretch; justify-self: stretch; color: var(--k); }
+.farm::before { content: ""; position: absolute; border-radius: 999px; background: var(--track); }
+.farm--pv { grid-area: apv; } .farm--bat { grid-area: abat; } .farm--grid { grid-area: agrid; } .farm--home { grid-area: ahome; }
+.farm--pv::before, .farm--bat::before { left: calc(50% - 1.5px); width: 3px; top: -0.15rem; bottom: -0.15rem; }
+.farm--grid::before, .farm--home::before { top: calc(50% - 1.5px); height: 3px; left: -0.3rem; right: -0.3rem; }
+.farm.is-on::before { background: color-mix(in srgb, var(--k) 70%, transparent); }
+.farm .i { position: relative; width: 1.35rem; height: 1.35rem; padding: 0.15rem; border-radius: 50%; background: var(--card-solid); stroke-width: 2.6; }
+.fhub { grid-area: hub; display: grid; place-items: center; width: 3.6rem; height: 3.6rem; border-radius: 50%; background: var(--well); box-shadow: inset 0 0 0 1px var(--divider); }
+.fhub svg { width: 2.2rem; height: 2.2rem; fill: none; }
+.fhub .mark-ring { stroke: var(--faint); stroke-width: 1.6; }
+.fhub .mark-arc { stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; }
+.fhub .mark-dot { fill: var(--accent); }
+.fhub:not([data-kind="run"]) .mark-arc { stroke: var(--faint); }
+.fhub:not([data-kind="run"]) .mark-dot { fill: var(--faint); }
+
+/* batterij */
+.enb { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1.3rem; }
+.enb__gauge { position: relative; width: 4.2rem; height: min(100%, 10.5rem); min-height: 6rem; padding: 0.3rem; border-radius: 1rem; box-shadow: inset 0 0 0 2px var(--divider); display: flex; align-items: flex-end; }
+.enb__gauge::before { content: ""; position: absolute; top: -0.45rem; left: 50%; width: 1.5rem; height: 0.3rem; border-radius: 0.2rem 0.2rem 0 0; background: var(--divider); transform: translateX(-50%); }
+.enb__gauge span { display: block; width: 100%; min-height: 0.35rem; border-radius: 0.7rem; background: linear-gradient(180deg, var(--green), color-mix(in srgb, var(--green) 55%, transparent)); }
+.enb__gauge.is-low span { background: var(--red); }
+.enb__main { display: grid; gap: 0.2rem; min-width: 0; }
+.enb__soc { font-family: var(--font-display); font-size: 4.4rem; font-weight: 330; line-height: 0.95; letter-spacing: -0.045em; }
+.enb__soc small { margin-left: 0.15rem; font-size: 1.8rem; font-weight: 400; color: var(--text-2); letter-spacing: 0; }
+.enb__main b { margin-top: 0.35rem; font-size: 1.05rem; font-weight: 800; }
+.enb__main > span:not(.enb__soc) { font-size: 0.9375rem; font-weight: 700; color: var(--muted); }
+.enb__rows { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--divider); }
+.enb__rows div { display: grid; gap: 0.1rem; }
+.enb__rows span { font-size: 0.8125rem; font-weight: 750; color: var(--muted); }
+.enb__rows b { font-size: 1.1rem; font-weight: 800; }
+
+/* vandaag */
+.ent__big { display: grid; gap: 0.1rem; }
+.ent__num { font-family: var(--font-display); font-size: 3rem; font-weight: 340; line-height: 1; letter-spacing: -0.04em; color: var(--text); }
+.ent__num small { margin-left: 0.3rem; font-family: var(--font); font-size: 1.05rem; font-weight: 800; letter-spacing: 0; color: var(--amber); }
+.ent__big > span:last-child { font-size: 0.9375rem; font-weight: 700; color: var(--muted); }
+.ent__rows { display: grid; margin-top: 0.5rem; }
+.ent__row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.6rem; padding: 0.26rem 0; border-top: 1px solid var(--divider); font-size: 0.9375rem; font-weight: 700; color: var(--text-2); }
+.ent__row i { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--k); }
+.ent__row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ent__row b { font-weight: 800; color: var(--text); white-space: nowrap; }
+.ent__note { margin-top: 0.6rem; font-size: 0.8125rem; font-weight: 650; line-height: 1.35; color: var(--muted); }
+.ent__bars { display: grid; gap: 0.45rem; margin-top: auto; padding-top: 0.5rem; }
+.enr { display: grid; gap: 0.2rem; }
+.enr__top { display: flex; justify-content: space-between; font-size: 0.9375rem; font-weight: 750; color: var(--text-2); }
+.enr__top b { color: var(--text); font-weight: 850; }
+.enr__bar { display: block; height: 0.4rem; border-radius: 999px; background: var(--track); overflow: hidden; }
+.enr__bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.enr small { font-size: 0.75rem; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* verloop van vandaag */
+.en-chart { padding-bottom: 0.9rem; }
+.en-flow, .en-today { padding-bottom: 1rem; }
+.en-chart .card__meta, .en-week .card__meta { gap: 0.9rem; }
+.enc__key { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; }
+.enc__key::before { content: ""; width: 0.9rem; height: 0.3rem; border-radius: 999px; background: var(--k); }
+.enc__key[data-k="pv"]::before { height: 0.6rem; border-radius: 0.2rem; background: color-mix(in srgb, var(--amber) 55%, transparent); }
+.enc__key[data-k="soc"]::before { height: 0; border-top: 2px dashed var(--k); background: none; }
+.enc { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 0.4rem; }
+.enc__plot { position: relative; min-height: 0; }
+.enc__plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.enc__grid { stroke: var(--divider); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.enc__pv { fill: color-mix(in srgb, var(--amber) 22%, transparent); }
+.enc__pvline { fill: none; stroke: var(--amber); stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.enc__load { fill: none; stroke: var(--text-2); stroke-width: 1.8; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.enc__soc { fill: none; stroke: var(--green); stroke-width: 1.8; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+.enc__now { position: absolute; top: -0.2rem; bottom: 0; width: 2px; margin-left: -1px; border-radius: 999px; background: var(--accent); }
+.enc__max { position: absolute; top: -0.2rem; left: 0; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+.enc__hours { position: relative; height: 1.1rem; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+.enc__hours span { position: absolute; top: 0; transform: translateX(-50%); }
+.enc__hours span:first-child { transform: none; }
+
+/* per dag */
+.enw { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.45rem; }
+.enw__day { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; justify-items: center; gap: 0.3rem; min-width: 0; font-size: 0.8125rem; font-weight: 750; color: var(--muted); }
+.enw__day small { font-size: 0.75rem; font-weight: 800; color: var(--text-2); }
+.enw__day.is-today > span { color: var(--accent); font-weight: 850; }
+.enw__bars { display: flex; align-items: flex-end; justify-content: center; gap: 3px; width: 100%; height: 100%; }
+.enw__bars span { width: min(0.8rem, 40%); min-height: 2px; border-radius: 0.3rem 0.3rem 0.1rem 0.1rem; background: var(--k); }
+.enw__bars span[data-k="pv"] { background: color-mix(in srgb, var(--amber) 80%, transparent); }
+.enw__bars span[data-k="home"] { background: color-mix(in srgb, var(--text-2) 30%, transparent); }
+
 @media (max-width: 47.99em), (orientation: portrait) {
   html { font-size: 16px; }
+  .en-chart { min-height: 15rem; } .en-week { min-height: 12rem; } .en-flow { min-height: 20rem; }
+  .en-chart .card__head, .en-week .card__head { flex-wrap: wrap; row-gap: 0.4rem; }
+  /* smal: net en huis met de tekst onder het icoon, alles op de bovenrand van het icoon uitgelijnd */
+  .flow { grid-template-columns: minmax(0, 1fr) minmax(0.8rem, 0.5fr) auto minmax(0.8rem, 0.5fr) minmax(0, 1fr); }
+  .fnode--grid, .fnode--home { flex-direction: column; gap: 0.3rem; align-self: start; justify-self: center; }
+  .fnode--grid .fnode__text, .fnode--home .fnode__text { justify-items: center; text-align: center; }
+  .fnode__ic, .fhub { width: 2.9rem; height: 2.9rem; }
+  .fhub, .farm--grid, .farm--home { align-self: start; }
+  .farm--grid, .farm--home { height: 2.9rem; }
+  .fnode__text b { font-size: 1.45rem; }
   body { height: auto; overflow: auto; }
   .shell { display: block; height: auto; min-height: 100dvh; padding: calc(0.75rem + env(safe-area-inset-top)) 0.75rem calc(5.8rem + env(safe-area-inset-bottom)); }
   .rail { position: fixed; left: 0.6rem; right: 0.6rem; bottom: calc(0.6rem + env(safe-area-inset-bottom)); z-index: 300; flex-direction: row; justify-content: space-around; padding: 0.3rem; border-radius: 1.5rem; border: 1px solid var(--card-border); background: var(--card-solid); box-shadow: 0 10px 30px -10px rgba(40, 20, 8, 0.5); }
@@ -927,6 +1067,19 @@ main { min-width: 0; min-height: 0; display: grid; grid-template: minmax(0, 1fr)
   .card__ic .i { width: 0.85rem; height: 0.85rem; }
   .card__meta { font-size: 0.7rem; }
   .tag { height: 1.05rem; font-size: 0.55rem; }
+
+  /* energie: alles op één rij, de dagen vallen weg */
+  .en { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1.6fr); grid-template-rows: minmax(0, 1fr); grid-template-areas: "flow bat today chart"; }
+  .en-week { display: none; }
+  .fnode__ic { width: 2rem; height: 2rem; } .fnode__ic .i { width: 1rem; height: 1rem; }
+  .fnode__text b { font-size: 1rem; } .fnode__text > span { font-size: 0.65rem; }
+  .fhub { width: 2.2rem; height: 2.2rem; } .fhub svg { width: 1.4rem; height: 1.4rem; }
+  .enb__soc { font-size: 2.6rem; } .enb__gauge { width: 2.4rem; min-height: 0; }
+  .ent__num { font-size: 2rem; } .ent__bars small, .enr small { display: none; }
+  .clock__energy { margin-top: 0.3rem; font-size: 0.7rem; }
+  .en-chart .card__meta, .ent__bars { display: none; }
+  .enb__rows { margin-top: 0.4rem; padding-top: 0.4rem; } .enb__rows b { font-size: 0.85rem; }
+  .ent__row { padding: 0.12rem 0; font-size: 0.75rem; }
 
   /* overview: clock and weather left; agenda (wide), tasks and deadlines next to it */
   .ov {

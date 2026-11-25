@@ -16,6 +16,7 @@ import { createSystem } from './providers/system.js';
 import { createSchool, lessonEvents } from './providers/school.js';
 import { createWaste, wasteTasks } from './providers/waste.js';
 import { createRecipes } from './providers/recipe.js';
+import { createEnergy } from './providers/energy.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = join(ROOT, 'public');
@@ -31,6 +32,8 @@ const system = createSystem(cfg);
 const SCHOOL_FILE = process.env.SMART_DISPLAY_SCHOOL ?? [join(ROOT, 'school.json'), join(ROOT, 'school.example.json')].find((f) => existsSync(f));
 const school = createSchool(SCHOOL_FILE, cfg.school?.timeedit);
 const recipes = createRecipes(DATA);
+// Zonnepanelen en thuisbatterij (Huawei SUN2000 + LUNA2000), lokaal via Modbus TCP. Optioneel.
+const energy = createEnergy(cfg, DATA);
 // Afvalophaling: zet "PMD buitenzetten" en co. vanzelf op de takenlijst.
 const syncWaste = (collections) => {
   if (todos.syncAuto('afval:', wasteTasks(collections, cfg.waste))) broadcast();
@@ -60,6 +63,8 @@ const routes = [
   ['GET', /^\/api\/health$/, () => ({ ok: true, uptime: Math.round(process.uptime()) })],
   // Het volledige weer (8 dagen per uur, regen per kwartier, lucht en pollen) voor het tabblad Weer.
   ['GET', /^\/api\/weather$/, () => weather.detail()],
+  // Energie: nu, vandaag, het verloop per 5 minuten en de voorbije dagen, voor het tabblad Energie.
+  ['GET', /^\/api\/energy$/, () => energy.detail()],
 
   // Voor de taken-app op de gsm: alleen de lijst en de categorieën.
   ['GET', /^\/api\/todos$/, () => ({ ...todos.list(), categories: cfg.categories })],
@@ -101,6 +106,7 @@ function dashboard() {
     school: school.get(),
     waste: waste.get(),
     recipe: recipes.view(),
+    energy: energy.get(),
     system: system.get(),
   };
 }
